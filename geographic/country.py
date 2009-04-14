@@ -6,6 +6,7 @@ from django.forms.fields import EMPTY_VALUES, Field
 from django.utils.translation import get_language, ugettext, ugettext_lazy as _
 from django.forms import ValidationError
 import re
+import django.forms as forms
 
 class CountryManager(models.Manager):
   pass
@@ -15,15 +16,17 @@ class Country(models.Model):
   alpha_3 = models.CharField(max_length=3) # http://en.wikipedia.org/wiki/ISO_3166-1_alpha-3
   name = models.CharField(max_length=100)
   phone_countrycode = models.IntegerField() # http://en.wikipedia.org/wiki/List_of_country_calling_codes
-  # Phone formats are in the format "+%(ccode)s%(0)d%(1)d%(2)d" etc.
-  phone_formats = models.CharField(max_length=200,default='[]') # stored as a stringified list.
+  _phone_formats = models.CharField(max_length=200, verbose_name=_('Phone Formats'), default='[]') # stored as a stringified list.
   phone_format_default = models.IntegerField(default=0) # 0 based index from phone_formats
-  address_format = models.CharField(max_length=300, null=True) # stored as a stringified list.
+  _address_format = models.CharField(max_length=300, null=True, verbose_name=_('Address Format')) # stored as a stringified list.
   # Example address format ['%(postcode_prefix)s-%(postcode)s','%(country)s'] . Lines are added as is.
+
+  def __unicode__(self):
+    return "%s (%s)" % (self.name,self.alpha_2)
 
   def _get_phone_formats(self):
     try:
-      phoneformats = eval(self.phone_format)
+      phoneformats = eval(self._phone_format)
     except:
       # The phone format is not legal .. so we just return empty
       phoneformats = []
@@ -32,7 +35,7 @@ class Country(models.Model):
   def _set_phone_formats(self, phoneformats):
     if not isinstance(phoneformats, list):
       raise TypeError, _(u"Phone formats must be in list format")
-    self.phone_format = str(phoneformats)
+    self._phone_format = str(phoneformats)
   
   phone_formats = property(_get_phone_formats, _set_phone_formats)
 
@@ -60,7 +63,7 @@ class Country(models.Model):
       context[str(ct)] = digit
     return phoneformat % context
 
-  def _get_address_formats(self):
+  def _get_address_format(self):
     try:
       addressformat = eval(self.address_format)
     except:
@@ -68,7 +71,7 @@ class Country(models.Model):
       addressformat = []
     return addressformat
 
-  def _set_address_formats(self, addressformat):
+  def _set_address_format(self, addressformat):
     if not isinstance(addressformat, list):
       raise TypeError, _(u"Must be in list format")
     self.address_format = str(addressformat)
