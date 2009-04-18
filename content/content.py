@@ -8,6 +8,10 @@ class ContentModel(models.Model):
   content_type = models.ForeignKey(ContentType)
   object_id = models.IntegerField(_('object ID'))
   content_object = generic.GenericForeignKey('content_type', 'object_id')
+  date_created = models.DateTimeField(auto_now_add=True)
+  date_modified = models.DateTimeField(auto_now=True)
+  created_by = models.ForeignKey(User, null=True)
+  modified_by = models.ForeignKey(User, null=True)
   
   def get_content_object(self):
     try:
@@ -15,8 +19,17 @@ class ContentModel(models.Model):
     except ObjectDoesNotExist:
       return None
   get_content_object.short_description = _('Content object')
+
   class Meta:
     abstract = True
+
+  def save(self, user=None, force_insert=False, force_update=False):
+    if user:
+      if not self.id:
+        created_by = user
+      else:
+        modified_by = user
+    super(ContentModel, self).save(force_insert, force_update)
 
 class CanBePrimary(ContentModel):
   """This abstract model is used to handle the commonalities in the supplementary models."""
@@ -26,7 +39,7 @@ class CanBePrimary(ContentModel):
     abstract = True
 
   def save(self, force_insert=False, force_update=False):
-   # ".. there can be only one" primary 
+    # ".. there can be only one" primary 
     p = [self._meta.db_table, self.content_type, self.object_id]
     connection.cursor().execute("UPDATE %s SET is_primary = 0 WHERE content_type =%s' AND object_id = '%s'", p)
     super(CanBePrimary, self).save(force_insert, force_update)
