@@ -1,4 +1,2 @@
-from django.db import models
-# Create your models here.
-from country import * 
-from address import *
+from globalcontact.geographic.country import * 
+from globalcontact.geographic.address import *

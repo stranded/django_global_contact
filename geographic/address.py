@@ -1,10 +1,12 @@
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import ugettext_lazy as _
-from country import Country
-from content.content import ContentModel
 from django.contrib.contenttypes import generic
 from django.contrib.localflavor.us.models import USStateField
+
+from globalcontact.geographic.country import Country
+from globalcontact.content.content import ContentModel
+
 
 class AddressLine(ContentModel):
   linedata = models.CharField(max_length=75)

@@ -1,6 +1,8 @@
 from django.contrib import admin
-from country import Country
 import django.forms as forms
+
+from globalcontact.geographic.country import Country
+
 
 class CountryAdminForm(forms.ModelForm):
   class Meta:
