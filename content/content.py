@@ -3,6 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.contenttypes import generic
 from django.db import connection
+from django.contrib.auth.models import User
 
 class ContentModel(models.Model):
   content_type = models.ForeignKey(ContentType)
@@ -10,8 +11,6 @@ class ContentModel(models.Model):
   content_object = generic.GenericForeignKey('content_type', 'object_id')
   date_created = models.DateTimeField(auto_now_add=True)
   date_modified = models.DateTimeField(auto_now=True)
-  created_by = models.ForeignKey(User, null=True)
-  modified_by = models.ForeignKey(User, null=True)
   
   def get_content_object(self):
     try:
