@@ -21,6 +21,9 @@ class Country(models.Model):
   _address_format = models.CharField(max_length=300, null=True, verbose_name=_('Address Format')) # stored as a stringified list.
   # Example address format ['%(postcode_prefix)s-%(postcode)s','%(country)s'] . Lines are added as is.
 
+  class Meta:
+    verbose_name_plural = _("Countries") # Looks better in Admin
+
   def __unicode__(self):
     return "%s (%s)" % (self.name,self.alpha_2)
 

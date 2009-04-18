@@ -20,12 +20,18 @@ class Address(ContentModel):
   city = models.CharField(max_length=50)
   state = USStateField(null=True)
   locationcode = models.CharField(max_length=10) # Postnr, Zip code, etc
-  longtitude = models.CharField(max_length=20, null=True)
-  latitude = models.CharField(max_length=20, null=True)
+  
+  latitude = models.DecimalField(max_digits=10, decimal_places=6, blank=True, null=True)
+  longitude = models.DecimalField(max_digits=10, decimal_places=6, blank=True, null=True)
+
   comment = models.CharField(max_length=200, null=True)
   # By adding a reverse generic relation we ensure that the lines are deleted when 
   # the address is deleted
   lines = generic.GenericRelation(AddressLine)
+  class Meta(ContentModel.Meta):
+    # Ensuring that we can only have one of each type address on a single model. This to simplify logic later
+    unique_together = ("content_type", "object_id", "addresstype")
+    verbose_name_plural = "Addresses"
 
   def _get_lines(self):
     # For ease of use in templates
@@ -56,5 +62,5 @@ class Address(ContentModel):
     return self.lines + self.country.formated_address(self)
     
   def __unicode__(self):
-    return u"[%s] Country: %s, City: %s, State: %s, Code: %s %s" % (self.addresstype,self.country.name, self.city, self.state, self.locationcode, self.get_lines_str())
+    return u", ".join( self.formatted() )
   
