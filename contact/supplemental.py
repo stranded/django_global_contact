@@ -1,9 +1,9 @@
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import ugettext_lazy as _
-from ..geographic.country import Country
+from globalcontact.geographic.country import Country
+from globalcontact.content.content import CanBePrimary
 import re
-from ..content.content import CanBePrimary
 
 class EmailAddress(CanBePrimary):
   emailtype = models.CharField(max_length=6, choices=(('PUBLIC',_('Public')),('PRIVATE',_('Private'))), default='PRIVATE' )

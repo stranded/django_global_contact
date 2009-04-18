@@ -3,9 +3,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.contenttypes import generic
 
-from ..geographic.country import Country
-from ..geographic.address import Address
-from suplementary import PhoneNumber, EmailAddress, IMAddress, MicroBlog, URLAddress
+from globalcontact.geographic.country import Country
+from globalcontact.geographic.address import Address
+from globalcontact.contact.suplementary import PhoneNumber, EmailAddress, IMAddress, MicroBlog, URLAddress
 
 import re
 
