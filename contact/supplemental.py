@@ -6,13 +6,13 @@ from globalcontact.content.content import CanBePrimary
 import re
 
 class EmailAddress(CanBePrimary):
-  emailtype = models.CharField(max_length=6, choices=(('PUBLIC',_('Public')),('PRIVATE',_('Private'))), default='PRIVATE' )
+  emailtype = models.CharField(max_length=10, choices=(('PUBLIC',_('Public')),('PRIVATE',_('Private'))), default='PRIVATE' )
   emailaddr = models.EmailField() 
   class Meta(CanBePrimary.Meta):
     verbose_name_plural = _("Email Addresses")
 
   def __unicode__(self):
-    return self.emailaddr
+    return u"%s (%s)" % (self.emailaddr, self.primary_str)
   
 class PhoneNumber(CanBePrimary):
   phonenumbertype = models.CharField(max_length=6, choices=(('FAX', _('Fax')), ('WORK', _('Work')),('OFFICE',_('Office')),('MOBILE',_('Mobile')),('DIRECT',_('Direct')),('HOME',_('Home')),))
@@ -22,10 +22,10 @@ class PhoneNumber(CanBePrimary):
     verbose_name_plural = _("Phone Numbers")
 
   def __unicode__(self):
-    return self.formated_phone_number()
+    return u"%s (%s)" % (self.formatted_phone_number(), self.primary_str)
 
-  def formated_phone_number(self, format_index=0):
-    return self.county.formated_phone_number(self.phonenumber, format_index)
+  def formatted_phone_number(self, format_index=0):
+    return self.county.formatted_phone_number(self.phonenumber, format_index)
   
 class IMAddress(CanBePrimary):
   imchoices = ( # Types taken from http://en.wikipedia.org/wiki/Instant_messaging
@@ -56,7 +56,7 @@ class IMAddress(CanBePrimary):
     verbose_name_plural = _("IM Addresses")
 
   def __unicode__(self):
-    return "IM [%s] %s" % (self.get_imtype_display(), self.account)
+    return "IM [%s] %s (%s)" % (self.get_imtype_display(), self.account, self.primary_str)
 
 class MicroBlog(CanBePrimary):
   microblogchoices = (
@@ -70,7 +70,7 @@ class MicroBlog(CanBePrimary):
     verbose_name_plural = _("Micro Blogs")
 
   def __unicode__(self):
-    return u"Micro Blog [%s] %s" % (self.get_microblogtype_display(), self.address)
+    return u"Micro Blog [%s] %s (%s)" % (self.get_microblogtype_display(), self.address, self.primary_str)
 
 class URLAddress(CanBePrimary):
   urlchoices = (
@@ -85,5 +85,5 @@ class URLAddress(CanBePrimary):
     verbose_name_plural = _("URL Addresses")
   
   def __unicode__(self):
-    return u"URL [%s] %s" % (self.get_urltype_display(), self.url)
+    return u"URL [%s] %s (%s)" % (self.get_urltype_display(), self.url, self.primary_str)
 

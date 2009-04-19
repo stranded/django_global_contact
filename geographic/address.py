@@ -61,7 +61,7 @@ class Address(ContentModel):
     raise KeyError, "Unknown key %s" % key
     
   def formatted(self):
-    return self.lines + self.country.formated_address(self)
+    return self.lines + self.country.formatted_address(self)
     
   def __unicode__(self):
     return u", ".join( self.formatted() )

@@ -8,17 +8,20 @@ from django.forms import ValidationError
 import re
 import django.forms as forms
 
+#dependency: http://code.google.com/p/transdb/
+import transdb
+
 class CountryManager(models.Manager):
   pass
   
 class Country(models.Model):
   alpha_2 = models.CharField(max_length=2) # http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
   alpha_3 = models.CharField(max_length=3) # http://en.wikipedia.org/wiki/ISO_3166-1_alpha-3
-  name = models.CharField(max_length=100)
+  name = transdb.TransCharField(max_length=250)
   phone_countrycode = models.IntegerField() # http://en.wikipedia.org/wiki/List_of_country_calling_codes
-  _phone_formats = models.CharField(max_length=200, verbose_name=_('Phone Formats'), default='[]') # stored as a stringified list.
+  _phone_formats = models.CharField(max_length=200, verbose_name=_('Phone Formats'), default='[]', help_text=_("eg. ['+%(ccode) %(1)d'%(2)d %(3)d%(4)d %(5)d%(6)d] %(7)d%(8)d'] would produce in Norway, +47 22 22 22 22. Make it a stringified list.")) # stored as a stringified list.
   phone_format_default = models.IntegerField(default=0) # 0 based index from phone_formats
-  _address_format = models.CharField(max_length=300, null=True, verbose_name=_('Address Format')) # stored as a stringified list.
+  _address_format = models.CharField(max_length=300, null=True, verbose_name=_('Address Format'), help_text=_("eg. ['%(postcode_prefix)s-%(postcode)s %(postplace)s','%(country)s'] would be correct for Norway. Make it a stringified list.")) # stored as a stringified list.
   # Example address format ['%(postcode_prefix)s-%(postcode)s','%(country)s'] . Lines are added as is.
 
   class Meta:
@@ -48,7 +51,7 @@ class Country(models.Model):
     except:
       return '' # If there is no 
 
-  def formated_phone_number(self,phonenumber, formatindex=0):
+  def formatted_phone_number(self,phonenumber, formatindex=0):
     if formatindex != self.phone_format_default: formatindex = self.phone_format_default
     if len(self.phone_formats) == 0 or formatindex > len(self.phone_formats):
       return phonenumber # We don't know any formatting so we just return the same number
@@ -81,8 +84,8 @@ class Country(models.Model):
 
   address_format = property(_get_address_format, _set_address_format)
 
-  def formated_address(self, address):
-    """Returns a list of lines representing the formated lines in the address"""
+  def formatted_address(self, address):
+    """Returns a list of lines representing the formatted lines in the address"""
     fa = []
     for line in self.address_format:
       fa.append( line % address )
