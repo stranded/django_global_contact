@@ -58,19 +58,17 @@ class Country(models.Model):
           alengths.append(len(re.findall('#',format[1])))
         self._phone_valid_digitcount = tuple(alengths)
         self.save()
+        tdigits = eval(self._phone_valid_digitcount)
+      else:
+        tdigits = (8,) # Most common
+    return tdigits
 
   def _set_phone_valid_digitcount(self, tdigits):
     pass
 
   phone_valid_digitcount = property(_get_phone_valid_digitcount, _set_phone_valid_digitcount)
 
-  def default_phone_formats(self):
-    try:
-      return self.phoneformats[self.phone_format_default]
-    except:
-      return '' # If there is no 
-
-  def formatted_phone_number(self,phonenumber, formatindex=0):
+  def formatted_phone_number(self,phonenumber):
     if len(self.phone_formats) == 0:
       return str(phonenumber)
 
@@ -83,7 +81,6 @@ class Country(models.Model):
           preformat = format[1]
           break
       if preformat: break
-
 
     # Check if the number is international
     preformat = preformat % {'ccode': str(self.phone_countrycode)}
