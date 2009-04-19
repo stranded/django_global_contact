@@ -32,7 +32,7 @@ class ContentModel(models.Model):
 
 class CanBePrimary(ContentModel):
   """This abstract model is used to handle the commonalities in the supplementary models."""
-  comment = models.CharField(max_length=200, null=True) # With this we are able to comment on each model
+  comment = models.CharField(max_length=200, blank=True, null=True) # With this we are able to comment on each model
   is_primary = models.BooleanField(default=False)
   def get_property_str(self): return self.is_primary and _("Primary") or _("Secondary")
   primary_str = property(get_property_str)

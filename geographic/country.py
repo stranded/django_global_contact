@@ -19,7 +19,8 @@ class Country(models.Model):
   alpha_3 = models.CharField(max_length=3) # http://en.wikipedia.org/wiki/ISO_3166-1_alpha-3
   name = transdb.TransCharField(max_length=250)
   phone_countrycode = models.IntegerField() # http://en.wikipedia.org/wiki/List_of_country_calling_codes
-  _phone_formats = models.CharField(max_length=200, verbose_name=_('Phone Formats'), default='[]', help_text=_("eg. ['+%(ccode) %(1)d'%(2)d %(3)d%(4)d %(5)d%(6)d] %(7)d%(8)d'] would produce in Norway, +47 22 22 22 22. Make it a stringified list.")) # stored as a stringified list.
+  _phone_valid_digitcount = models.CharField(max_length=10, null=True, verbose_name=_("Phone Valid Digit Count")) # A stringified tupple of possible lengths
+  _phone_formats = models.CharField(max_length=200, verbose_name=_('Phone Formats'), default='[]', help_text=_("Make sure it is a valid stringified list with tupples in format: [ ( (9,4),'+%(ccode)s ### ## ###'), ((2,'#'),'+%(ccode)s ## ## ## ##')]. This would producte formatting +47 22 22 22 22 and +47 900 11 000 in Norway. The first # encountered in the match digits is used as default."))
   phone_format_default = models.IntegerField(default=0) # 0 based index from phone_formats
   _address_format = models.CharField(max_length=300, null=True, verbose_name=_('Address Format'), help_text=_("eg. ['%(postcode_prefix)s-%(postcode)s %(postplace)s','%(country)s'] would be correct for Norway. Make it a stringified list.")) # stored as a stringified list.
   # Example address format ['%(postcode_prefix)s-%(postcode)s','%(country)s'] . Lines are added as is.
@@ -28,11 +29,12 @@ class Country(models.Model):
     verbose_name_plural = _("Countries") # Looks better in Admin
 
   def __unicode__(self):
-    return "%s (%s)" % (self.name,self.alpha_2)
+    localname = self.name
+    return "%s (%s)" % (localname,self.alpha_2)
 
   def _get_phone_formats(self):
     try:
-      phoneformats = eval(self._phone_format)
+      phoneformats = eval(self._phone_formats)
     except:
       # The phone format is not legal .. so we just return empty
       phoneformats = []
@@ -45,6 +47,23 @@ class Country(models.Model):
   
   phone_formats = property(_get_phone_formats, _set_phone_formats)
 
+  def _get_phone_valid_digitcount(self):
+    try:
+      tdigits = eval(self._phone_valid_digitcount)
+    except:
+      if self.phone_formats:
+        # We try to harness the length from the formatting
+        alengths = []
+        for format in self.phone_formats:
+          alengths.append(len(re.findall('#',format[1])))
+        self._phone_valid_digitcount = tuple(alengths)
+        self.save()
+
+  def _set_phone_valid_digitcount(self, tdigits):
+    pass
+
+  phone_valid_digitcount = property(_get_phone_valid_digitcount, _set_phone_valid_digitcount)
+
   def default_phone_formats(self):
     try:
       return self.phoneformats[self.phone_format_default]
@@ -52,22 +71,31 @@ class Country(models.Model):
       return '' # If there is no 
 
   def formatted_phone_number(self,phonenumber, formatindex=0):
-    if formatindex != self.phone_format_default: formatindex = self.phone_format_default
-    if len(self.phone_formats) == 0 or formatindex > len(self.phone_formats):
-      return phonenumber # We don't know any formatting so we just return the same number
-    phoneformat = self.phone_formats[formatindex]
-    phonenumber = re.sub('\.|\s|-|\(|\)','',phonenumber) # First we strip all old formatting
-    # Check if the number is international
-    ccode = str(self.phone_countrycode)
-    if phonenumber[0:len(ccode)+1] == '+%s' % ccode or phonenumber[0:len(ccode)+2] == '00%s' % ccode:
-      # We strip the internationalization
-      phonenumber = re.sub('\+%(ccode)s|00%(ccode)s','',self.phone_countrycode) 
+    if len(self.phone_formats) == 0:
+      return str(phonenumber)
 
-    context = {'ccode':ccode}
-    ct = 0
-    for digit in re.findall('\d',phonenumber):
-      context[str(ct)] = digit
-    return phoneformat % context
+    # 1. Find which format to use
+    preformat = ""
+    for format in self.phone_formats:
+      for pre in format[0]:
+        spre = str(pre)
+        if spre == '#' or spre == str(phonenumber)[:len(spre)]: 
+          preformat = format[1]
+          break
+      if preformat: break
+
+
+    # Check if the number is international
+    preformat = preformat % {'ccode': str(self.phone_countrycode)}
+    digits = re.findall('\d',str(phonenumber))
+    formatted_number=""
+    for c in preformat:
+      if c == '#':
+        formatted_number += digits.pop(0)
+      else:
+        formatted_number += c
+
+    return formatted_number
 
   def _get_address_format(self):
     try:

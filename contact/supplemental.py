@@ -24,8 +24,8 @@ class PhoneNumber(CanBePrimary):
   def __unicode__(self):
     return u"%s (%s)" % (self.formatted_phone_number(), self.primary_str)
 
-  def formatted_phone_number(self, format_index=0):
-    return self.county.formatted_phone_number(self.phonenumber, format_index)
+  def formatted_phone_number(self):
+    return self.country.formatted_phone_number(self.phonenumber)
   
 class IMAddress(CanBePrimary):
   imchoices = ( # Types taken from http://en.wikipedia.org/wiki/Instant_messaging
