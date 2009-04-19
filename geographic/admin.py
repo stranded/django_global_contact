@@ -2,7 +2,7 @@ from django.contrib import admin
 import django.forms as forms
 
 from globalcontact.geographic.country import Country
-
+from globalcontact.geographic.address import Address
 
 class CountryAdminForm(forms.ModelForm):
   class Meta:
@@ -18,3 +18,4 @@ class CountryAdmin(admin.ModelAdmin):
   list_display = ('__unicode__',)
 
 admin.site.register(Country, CountryAdmin)
+admin.site.register(Address)

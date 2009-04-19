@@ -29,17 +29,24 @@ class Address(ContentModel):
   comment = models.CharField(max_length=200, null=True)
   # By adding a reverse generic relation we ensure that the lines are deleted when 
   # the address is deleted
-  lines = generic.GenericRelation(AddressLine)
+  _lines = generic.GenericRelation(AddressLine)
   class Meta(ContentModel.Meta):
     # Ensuring that we can only have one of each type address on a single model. This to simplify logic later
     unique_together = ("content_type", "object_id", "addresstype")
     verbose_name_plural = "Addresses"
 
+  def add_line(self, line):
+    index = self._lines.count()
+    newline = self._lines.create(linedata=line,lineorder=index)
+    return newline
+
   def _get_lines(self):
     # For ease of use in templates
     lines = []
-    for line in self.lines.all():
+    for line in self._lines.all():
       lines.append(line.linedata)
+
+    return lines
 
   lines = property(_get_lines)
     
@@ -47,7 +54,7 @@ class Address(ContentModel):
     """This is used for formating. When passing the address object to country for formatting, 
     string formating is passed through this function.
     """ 
-    if key == 'city':
+    if key in ('postplace','city'):
       return self.city
     elif key in ('postcode','locationcode','zip'):
       return self.locationcode

@@ -99,7 +99,7 @@ class Country(models.Model):
 
   def _get_address_format(self):
     try:
-      addressformat = eval(self.address_format)
+      addressformat = eval(self._address_format)
     except:
       # The phone format is not legal .. so we just return empty
       addressformat = []
